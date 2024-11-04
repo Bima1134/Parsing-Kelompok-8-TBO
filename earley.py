@@ -98,6 +98,30 @@ class EarleyParse(object):
             if prev_state.next() == state.rule.lhs:
                 self.chart[pos].add(EarleyState(prev_state.rule, dot=(prev_state.dot + 1), sent_pos=prev_state.sent_pos, chart_pos=pos, back_pointers=(prev_state.back_pointers + [state])))
 
+    def print_chart(self):
+        for i in range(len(self.chart)):
+            entry = self.chart[i]
+            # Format the string for the current input position
+            if i < len(self.words):
+                current_input = f"{''.join(self.words[:i])}['{self.words[i]}']{''.join(self.words[i + 1:])}"
+            else:
+                current_input = f"{''.join(self.words[:i])}[]"
+
+            print(f"({i}) \"{current_input}\"")
+            
+            for state in entry:
+                # Print the details of each state, including the rule and the dot position
+                lhs = state.rule.lhs
+                rhs_left = ' '.join(state.rule.rhs[:state.dot])
+                rhs_right = ' '.join(state.rule.rhs[state.dot:])
+                rhs_string = f"{rhs_left}. {rhs_right}".strip()
+                print(f"\t [{state.sent_pos}] {lhs} -> {rhs_string}")
+
+            # Check for acceptance
+            if any(state.is_complete() and state.rule.lhs == 'S' for state in entry):
+                print(" ACCEPTS")
+
+
     def parse(self):
         for i in range(len(self.chart)):
             for state in self.chart[i]:
@@ -108,6 +132,7 @@ class EarleyParse(object):
                         self.predictor(state, i)
                 else:
                     self.completer(state, i)
+            self.print_chart()  # Print chart after each position
 
     def has_parse(self):
         for state in self.chart[-1]:
@@ -156,3 +181,48 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+#Rule grammar
+#S -> NP VP
+#NP -> Det N
+#VP -> V NP
+#Det -> the | a
+#N -> dog | cat
+#V -> chased | saw
+
+#String :
+#the dog chased the dog
+#the dog chased the cat
+#the dog chased a dog
+#the dog chased a cat
+#the dog saw the dog
+#the dog saw the cat
+#the dog saw a dog
+#the dog saw a cat
+#the cat chased the dog
+#the cat chased the cat
+#the cat chased a dog
+#the cat chased a cat
+#the cat saw the dog
+#the cat saw the cat
+#the cat saw a dog
+#the cat saw a cat
+#a dog chased the dog
+#a dog chased the cat
+#a dog chased a dog
+#a dog chased a cat
+#a dog saw the dog
+#a dog saw the cat
+#a dog saw a dog
+#a dog saw a cat
+#a cat chased the dog
+#a cat chased the cat
+#a cat chased a dog
+#a cat chased a cat
+#a cat saw the dog
+#a cat saw the cat
+#a cat saw a dog
+#a cat saw a cat
+
+#
